@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # RabbitMQ - Fila de mensagens
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: heroi-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Interface Web
+    environment:
+      RABBITMQ_DEFAULT_USER: myuser
+      RABBITMQ_DEFAULT_PASS: secret
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - heroi-network
+
+  # Redis - Cache para estatísticas
+  redis:
+    image: redis:7-alpine
+    container_name: heroi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - heroi-network
+
+  # PostgreSQL - Database para persistir dados
+  postgres:
+    image: postgres:15-alpine
+    container_name: heroi-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: heroiDB
+      POSTGRES_USER: heroi_user
+      POSTGRES_PASSWORD: heroi_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - heroi-network
+
+  # Grafana - Dashboard para visualização
+  grafana:
+    image: grafana/grafana:latest
+    container_name: heroi-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - heroi-network
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+  postgres_data:
+  grafana_data:
+
+networks:
+  heroi-network:
+    driver: bridge
